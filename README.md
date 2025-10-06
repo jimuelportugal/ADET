@@ -1,7 +1,5 @@
 # ADET
 
-
-<div align="left">
 📦 NEXTJS
 ├── 🗂️ migrations
 │   └── 📄 scheme.sql
@@ -31,4 +29,3 @@
 ├── 📦 package.json
 ├── 🧾 tsconfig.json
 └── 🌳 tree.txt
-</div>
