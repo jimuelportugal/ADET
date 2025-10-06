@@ -9,9 +9,8 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
-  // ✅ Must include role here
   async validateUser(username: string, pass: string) {
     const user = await this.usersService.findByUsername(username);
     if (!user) return null;
@@ -21,7 +20,7 @@ export class AuthService {
       return {
         id: user.id,
         username: user.username,
-        role: user.role, // ✅ Add this
+        role: user.role,
       };
     }
     return null;
@@ -43,6 +42,21 @@ export class AuthService {
 
     return { accessToken, refreshToken };
   }
+
+  async logout(refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
+
+    const user = await this.usersService.findByRefreshToken(refreshToken);
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    await this.usersService.setRefreshToken(user.id, null);
+    return { message: 'Logged out successfully' };
+  }
+
 
   async refreshTokens(refreshToken: string) {
     try {
@@ -72,7 +86,7 @@ export class AuthService {
         payload,
         process.env.JWT_REFRESH_TOKEN_SECRET || 'refresh_secret',
         {
-          expiresIn: process.env.REFRESH_TOKEN_EXPIRE_IN || '7d',
+          expiresIn: process.env.REFRESH_TOKEN_EXPIRE_IN || '5d',
         },
       );
 
