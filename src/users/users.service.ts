@@ -1,3 +1,4 @@
+// Added a method to update, reset, and fetch borrowed_book and borrow_status
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { RowDataPacket, OkPacket } from 'mysql2';
@@ -5,7 +6,7 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-    constructor(private db: DatabaseService) {}
+    constructor(private db: DatabaseService) { }
 
     private pool = () => this.db.getPool();
 
@@ -27,7 +28,7 @@ export class UsersService {
     }
     async findById(id: number) {
         const [rows] = await this.pool().execute<RowDataPacket[]>(
-            'SELECT id, username, role FROM users WHERE id = ?',
+            'SELECT id, username, role, created_at FROM users WHERE id = ?',
             [id],
         );
         return rows[0];
@@ -35,19 +36,19 @@ export class UsersService {
 
     async getAll() {
         const [rows] = await this.pool().execute<RowDataPacket[]>(
-            'SELECT id, username, role FROM users',
+            'SELECT id, username, role, created_at FROM users',
         );
         return rows;
     }
 
-    async updateUser(id: number, partial: { username?: string; password?: string; role?: string  }) {
+    async updateUser(id: number, partial: { username?: string; password?: string; role?: string }) {
         const fields: string[] = [];
         const values: any[] = [];
         if (partial.username) {
             fields.push('username = ?');
             values.push(partial.username);
         }
-        if (partial.password){
+        if (partial.password) {
             const hashed = await bcrypt.hash(partial.password, 10);
             fields.push('password = ?');
             values.push(hashed);
@@ -69,7 +70,7 @@ export class UsersService {
     }
 
     async setRefreshToken(id: number, refreshToken: string | null) {
-     await this.pool().execute('UPDATE users SET refresh_token = ? WHERE id = ?', [refreshToken, id]);
+        await this.pool().execute('UPDATE users SET refresh_token = ? WHERE id = ?', [refreshToken, id]);
     }
 
 
@@ -80,4 +81,40 @@ export class UsersService {
         );
         return rows[0];
     }
+
+    async borrowBook(userId: number, bookTitle: string) {
+        const [user] = await this.pool().execute<RowDataPacket[]>(
+            `SELECT * FROM users WHERE id = ?`,
+            [userId]
+        );
+        if (!user) throw new NotFoundException('User not found');
+
+        await this.pool().execute(
+            `UPDATE users SET borrowed_book = ?, borrow_status = FALSE WHERE id = ?`,
+            [bookTitle, userId]
+        );
+    }
+
+    async returnBook(userId: number) {
+        const [user] = await this.pool().execute<RowDataPacket[]>(
+            `SELECT * FROM users WHERE id = ?`,
+            [userId]
+        );
+        if (!user) throw new NotFoundException('User not found');
+
+        await this.pool().execute(
+            `UPDATE users SET borrowed_book = 'None', borrow_status = TRUE WHERE id = ?`,
+            [userId]
+        );
+    }
+
+    async getUserBorrowStatus(userId: number) {
+        const [user] = await this.pool().execute<RowDataPacket[]>(
+            `SELECT borrowed_book, borrow_status FROM users WHERE id = ?`,
+            [userId]
+        );
+        return user[0] || null;
+    }
+
+
 }
