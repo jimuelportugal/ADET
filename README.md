@@ -1,6 +1,7 @@
 # ADET
 
 <div>
+<h3>TREE</h3>
 <pre>
 📦 NEXTJS
 ├── 🗂️ migrations
@@ -32,4 +33,17 @@
 ├── 🧾 tsconfig.json
 └── 🌳 tree.txt
 </pre>
+</div>
+
+<div>
+<h3>Installations / Dependencies</h3>
+npm install @nestjs/core @nestjs/common @nestjs/platform-express reflect-metadata rxjs
+npm install @nestjs/jwt passport passport-jwt
+npm install bcryptjs   # or bcrypt
+npm install @nestjs/config
+npm install @nestjs/typeorm typeorm mysql2   # Or pg if using Postgres
+npm install class-validator class-transformer
+
+npm install -D typescript ts-node @types/node ts-node-dev
+
 </div>
