@@ -21,18 +21,20 @@ export class AuthController {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        // Ensure the object matches the expected type for login()
         return this.authService.login({
             id: user.id,
             username: user.username,
-            role: user.role, 
+            role: user.role,
         });
     }
-
-    // ✅ Removed logout() to avoid TS error since authService.logout() doesn't exist
 
     @Post('refresh')
     async refresh(@Body() body: { refreshToken: string }) {
         return this.authService.refreshTokens(body.refreshToken);
+    }
+
+    @Post('logout')
+    async logout(@Body() body: { refreshToken: string }) {
+        return this.authService.logout(body.refreshToken);
     }
 }
