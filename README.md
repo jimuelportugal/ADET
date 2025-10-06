@@ -1,7 +1,7 @@
 # ADET
 
 
-<div align="center">
+<div align="left">
 📦 NEXTJS
 ├── 🗂️ migrations
 │   └── 📄 scheme.sql
