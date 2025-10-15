@@ -1,8 +1,3 @@
-# ADET
-
-<div>
-<h3>TREE</h3>
-<pre>
 📦 NEXTJS
 ├── 🗂️ migrations
 │   └── 📄 scheme.sql
@@ -21,6 +16,11 @@
 │   │   ├── 📄 database.module.ts
 │   │   └── 📄 database.service.ts
 │   │
+│   ├── 🛢 positions
+│   │   ├── 📄 positions.controller.ts
+│   │   ├── 📄 positions.module.ts
+│   │   └── 📄 positions.service.ts
+│   │
 │   └── 👤 users
 │       ├── 📄 users.controller.ts
 │       ├── 📄 users.module.ts
@@ -32,19 +32,3 @@
 ├── 📦 package.json
 ├── 🧾 tsconfig.json
 └── 🌳 tree.txt
-</pre>
-</div>
-
-<div>
-<h3>Installations / Dependencies</h3>
-<pre>
-npm install @nestjs/core @nestjs/common @nestjs/platform-express reflect-metadata rxjs
-npm install @nestjs/jwt passport passport-jwt
-npm install bcryptjs   # or bcrypt
-npm install @nestjs/config
-npm install @nestjs/typeorm typeorm mysql2   # Or pg if using Postgres
-npm install class-validator class-transformer
-
-npm install -D typescript ts-node @types/node ts-node-dev
-</pre>
-</div>
