@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request, Post, Param, BadRequestException } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -6,20 +6,24 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class BooksController {
     constructor(private booksService: BooksService) {}
 
-    // GET /books/borrowed
-    // This is the specific endpoint the frontend ProfilePage calls.
+    @UseGuards(JwtAuthGuard)
+    @Post('borrow/:bookId')
+    async borrowBook(@Param('bookId') bookId: string, @Request() req: any) {
+        const parsedBookId = Number(bookId);
+        if (isNaN(parsedBookId)) {
+            throw new BadRequestException('Invalid book ID format');
+        }
+        const userId = req.user.userId;
+        return this.booksService.borrowBook(parsedBookId, userId);
+    }
+    
     @UseGuards(JwtAuthGuard)
     @Get('borrowed')
     async getBorrowedBooks(@Request() req: any) {
-        // The userId is securely extracted from the JWT payload by the JwtAuthGuard
         const userId = req.user.userId;
-        
-        // Fetches books only for the authenticated user
         return this.booksService.getBorrowedBooks(userId);
     }
     
-    // GET /books 
-    // This endpoint is likely for the main dashboard view to see all available and borrowed books
     @UseGuards(JwtAuthGuard)
     @Get()
     async getAllBooks() {
