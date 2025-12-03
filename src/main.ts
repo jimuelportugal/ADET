@@ -12,8 +12,8 @@ async function bootstrap() {
     app.enableCors({
         origin: [
             // Your local development server address
-            'http://2.3.1.59:3000', 
-            // The deployed address of your Next.js frontend
+            'http://2.3.1.98:3000',
+            'http://localhost:3000',
             'https://nextjs-aut.onrender.com' 
         ],
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -24,3 +24,4 @@ async function bootstrap() {
     console.log(`server listening on: http://localhost:${port}`);
 }
 bootstrap();
+
