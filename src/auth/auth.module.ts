@@ -12,8 +12,8 @@ import { RolesGuard } from './roles.guard';
         UsersModule,
         PassportModule,
         JwtModule.register({
-            secret: process.env.JWT_ACCESSS_TOKEN_SECRET || 'access_secret',
-            signOptions: { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION || '900s' },
+            secret: process.env.JWT_ACCESS_TOKEN_SECRET || 'access_secret',
+            signOptions: { expiresIn: (process.env.ACCESS_TOKEN_EXPIRATION || '900s') as any },
         }),
     ],
     providers: [AuthService, JwtStrategy, RolesGuard],

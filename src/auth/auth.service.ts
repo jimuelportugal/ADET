@@ -34,7 +34,8 @@ export class AuthService {
       payload,
       process.env.JWT_REFRESH_TOKEN_SECRET || 'refresh_secret',
       {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRE_IN || '7d',
+        // FIX: Cast to 'any' to resolve the overload mismatch
+        expiresIn: (process.env.REFRESH_TOKEN_EXPIRE_IN || '7d') as any,
       },
     );
 
@@ -86,7 +87,7 @@ export class AuthService {
         payload,
         process.env.JWT_REFRESH_TOKEN_SECRET || 'refresh_secret',
         {
-          expiresIn: process.env.REFRESH_TOKEN_EXPIRE_IN || '5d',
+          expiresIn: (process.env.REFRESH_TOKEN_EXPIRE_IN || '5d') as any,
         },
       );
 

@@ -7,7 +7,7 @@ import { Roles } from "../auth/roles.decorator";
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
-    constructor(private usersService) { }
+    constructor(private usersService: UsersService) { } // Added type annotation
 
     @Get()
     @Roles('admin')
@@ -40,20 +40,5 @@ export class UsersController {
     @Roles('admin')
     async remove(@Param('id') id) {
         return this.usersService.deleteUser(+id);
-    }
-    
-    @Post('borrow/:id')
-    async borrowBook(@Param('id') id, @Body('book') book) {
-        return this.usersService.borrowBook(Number(id), book);
-    }
-
-    @Post('return/:id')
-    async returnBook(@Param('id') id) {
-        return this.usersService.returnBook(Number(id));
-    }
-
-    @Get('status/:id')
-    async borrowStatus(@Param('id') id) {
-        return this.usersService.getUserBorrowStatus(Number(id));
     }
 }
