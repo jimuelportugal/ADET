@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { RowDataPacket, OkPacket } from 'mysql2';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 @Injectable()
 export class BooksService {
-    constructor(private db) {}
+    constructor(private db: DatabaseService) {}
 
     private pool = () => this.db.getPool();
 
-    async requestBook(bookId, userId) {
-        const [bookRows] = await this.pool().execute(
+    async requestBook(bookId: number, userId: number) {
+        const [bookRows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT book_id, status FROM books WHERE book_id = ?`,
             [bookId]
         );
@@ -22,7 +22,7 @@ export class BooksService {
             throw new BadRequestException('Book is not available for request.');
         }
         
-        const [existingRequest] = await this.pool().execute(
+        const [existingRequest] = await this.pool().execute<RowDataPacket[]>(
              `SELECT book_id FROM books WHERE borrower_id = ? AND book_id = ? AND status = 'requested'`,
              [userId, bookId]
         );
@@ -30,7 +30,7 @@ export class BooksService {
             throw new BadRequestException('You already have an active request for this book.');
         }
 
-        const [result] = await this.pool().execute(
+        const [result] = await this.pool().execute<ResultSetHeader>(
             `UPDATE books SET borrower_id = ?, status = 'requested' WHERE book_id = ?`,
             [userId, bookId]
         );
@@ -38,8 +38,8 @@ export class BooksService {
         return { success: result.affectedRows > 0, bookId, userId };
     }
     
-    async cancelRequest(bookId, userId) {
-        const [bookRows] = await this.pool().execute(
+    async cancelRequest(bookId: number, userId: number) {
+        const [bookRows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT book_id, status, borrower_id FROM books WHERE book_id = ?`,
             [bookId]
         );
@@ -52,7 +52,7 @@ export class BooksService {
             throw new BadRequestException('You can only cancel your own request.');
         }
 
-        const [result] = await this.pool().execute(
+        const [result] = await this.pool().execute<ResultSetHeader>(
             `UPDATE books SET borrower_id = NULL, status = 'available' WHERE book_id = ? AND borrower_id = ?`,
             [bookId, userId]
         );
@@ -60,8 +60,8 @@ export class BooksService {
         return { success: result.affectedRows > 0, bookId, userId };
     }
     
-    async getBorrowedBooks(userId) {
-        const [rows] = await this.pool().execute(
+    async getBorrowedBooks(userId: number) {
+        const [rows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT book_id, title, image_link, status, created_at, updated_at
              FROM books
              WHERE borrower_id = ? AND status IN ('requested', 'borrowed')`,
@@ -70,17 +70,17 @@ export class BooksService {
         return rows;
     }
     
-    async createBook(bookData) {
-        const [result] = await this.pool().execute(
+    async createBook(bookData: { title: string; image_link: string }) {
+        const [result] = await this.pool().execute<ResultSetHeader>(
             `INSERT INTO books (title, image_link) VALUES (?, ?)`,
             [bookData.title, bookData.image_link]
         );
-        return await this.findById((result).insertId);
+        return await this.findById(result.insertId);
     }
 
-    async updateBook(bookId, partial) {
-        const fields = [];
-        const values = [];
+    async updateBook(bookId: number, partial: { title?: string; image_link?: string; status?: string; borrower_id?: number }) {
+        const fields: string[] = [];
+        const values: any[] = [];
 
         if (partial.title) {
             fields.push('title = ?');
@@ -109,13 +109,13 @@ export class BooksService {
         return await this.findById(bookId);
     }
     
-    async deleteBook(bookId) {
-        const [res] = await this.pool().execute('DELETE FROM books WHERE book_id = ?', [bookId]);
+    async deleteBook(bookId: number) {
+        const [res] = await this.pool().execute<ResultSetHeader>('DELETE FROM books WHERE book_id = ?', [bookId]);
         return res.affectedRows > 0;
     }
 
-    async rejectRequest(bookId, reason) {
-        const [bookRows] = await this.pool().execute(
+    async rejectRequest(bookId: number, reason: string) {
+        const [bookRows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT borrower_id FROM books WHERE book_id = ? AND status = 'requested'`,
             [bookId]
         );
@@ -131,7 +131,7 @@ export class BooksService {
             [bookId]
         );
 
-        const [userRows] = await this.pool().execute(
+        const [userRows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT username FROM users WHERE id = ?`,
             [borrowerId]
         );
@@ -142,9 +142,8 @@ export class BooksService {
         return { success: true, message: `Request rejected and notification sent to ${username}.` };
     }
 
-
-    async findById(bookId) {
-        const [rows] = await this.pool().execute(
+    async findById(bookId: number) {
+        const [rows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT book_id, title, image_link, borrower_id, status, created_at, updated_at
              FROM books WHERE book_id = ?`,
             [bookId]
@@ -154,7 +153,7 @@ export class BooksService {
     }
     
     async getAllBooks() {
-        const [rows] = await this.pool().execute(
+        const [rows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT book_id, title, image_link, borrower_id, status, created_at, updated_at 
              FROM books`
         );

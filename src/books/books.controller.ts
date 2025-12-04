@@ -6,19 +6,19 @@ import { Roles } from '../auth/roles.decorator';
 
 @Controller('books')
 export class BooksController {
-    constructor(private booksService) {}
+    constructor(private booksService: BooksService) {}
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Post()
     @Roles('admin')
-    async createBook(@Body() body) {
+    async createBook(@Body() body: any) {
         return this.booksService.createBook(body);
     }
     
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Get(':bookId')
     @Roles('admin')
-    async getBookById(@Param('bookId') bookId) {
+    async getBookById(@Param('bookId') bookId: string) {
         return this.booksService.findById(+bookId);
     }
 
@@ -26,8 +26,8 @@ export class BooksController {
     @Put(':bookId')
     @Roles('admin')
     async updateBook(
-        @Param('bookId') bookId,
-        @Body() body
+        @Param('bookId') bookId: string,
+        @Body() body: any
     ) {
         return this.booksService.updateBook(+bookId, body);
     }
@@ -35,14 +35,14 @@ export class BooksController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Delete(':bookId')
     @Roles('admin')
-    async deleteBook(@Param('bookId') bookId) {
+    async deleteBook(@Param('bookId') bookId: string) {
         return this.booksService.deleteBook(+bookId);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Post('reject/:bookId')
     @Roles('admin')
-    async rejectBookRequest(@Param('bookId') bookId, @Body('reason') reason) {
+    async rejectBookRequest(@Param('bookId') bookId: string, @Body('reason') reason: string) {
         const parsedBookId = Number(bookId);
         if (isNaN(parsedBookId)) {
             throw new BadRequestException('Invalid book ID format');
@@ -55,7 +55,7 @@ export class BooksController {
 
     @UseGuards(JwtAuthGuard)
     @Post('request/:bookId')
-    async requestBook(@Param('bookId') bookId, @Request() req) {
+    async requestBook(@Param('bookId') bookId: string, @Request() req: any) {
         const parsedBookId = Number(bookId);
         if (isNaN(parsedBookId)) {
             throw new BadRequestException('Invalid book ID format');
@@ -66,7 +66,7 @@ export class BooksController {
     
     @UseGuards(JwtAuthGuard)
     @Post('cancel/:bookId')
-    async cancelRequest(@Param('bookId') bookId, @Request() req) {
+    async cancelRequest(@Param('bookId') bookId: string, @Request() req: any) {
         const parsedBookId = Number(bookId);
         if (isNaN(parsedBookId)) {
             throw new BadRequestException('Invalid book ID format');
@@ -77,7 +77,7 @@ export class BooksController {
 
     @UseGuards(JwtAuthGuard)
     @Get('borrowed')
-    async getBorrowedBooks(@Request() req) {
+    async getBorrowedBooks(@Request() req: any) {
         const userId = req.user.userId;
         return this.booksService.getBorrowedBooks(userId);
     }
