@@ -6,13 +6,19 @@ import { Roles } from '../auth/roles.decorator';
 
 @Controller('books')
 export class BooksController {
-    constructor(private booksService: BooksService) { }
+    constructor(private booksService: BooksService) {}
 
     @UseGuards(JwtAuthGuard)
     @Get('borrowed')
     async getBorrowedBooks(@Request() req: any) {
         const userId = req.user.userId;
         return this.booksService.getBorrowedBooks(userId);
+    }
+    
+    @UseGuards(JwtAuthGuard)
+    @Get()
+    async getAllBooks() {
+        return this.booksService.getAllBooks();
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
@@ -21,7 +27,7 @@ export class BooksController {
     async createBook(@Body() body: any) {
         return this.booksService.createBook(body);
     }
-
+    
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Get(':bookId')
     @Roles('admin')
@@ -49,15 +55,20 @@ export class BooksController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Post('reject/:bookId')
     @Roles('admin')
-    async rejectBookRequest(@Param('bookId') bookId: string, @Body('reason') reason: string) {
+    async rejectBookRequest(@Param('bookId') bookId: string) {
         const parsedBookId = Number(bookId);
         if (isNaN(parsedBookId)) {
             throw new BadRequestException('Invalid book ID format');
         }
-        if (!reason || typeof reason !== 'string') {
-            throw new BadRequestException('Rejection reason is required.');
-        }
-        return this.booksService.rejectRequest(parsedBookId, reason);
+        // No body required anymore
+        return this.booksService.rejectRequest(parsedBookId);
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Post('return/:bookId')
+    @Roles('admin')
+    async returnBook(@Param('bookId') bookId: string) {
+        return this.booksService.returnBook(+bookId);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -70,7 +81,7 @@ export class BooksController {
         const userId = req.user.userId;
         return this.booksService.requestBook(parsedBookId, userId);
     }
-
+    
     @UseGuards(JwtAuthGuard)
     @Post('cancel/:bookId')
     async cancelRequest(@Param('bookId') bookId: string, @Request() req: any) {
@@ -80,18 +91,5 @@ export class BooksController {
         }
         const userId = req.user.userId;
         return this.booksService.cancelRequest(parsedBookId, userId);
-    }
-
-    @UseGuards(JwtAuthGuard)
-    @Get()
-    async getAllBooks() {
-        return this.booksService.getAllBooks();
-    }
-
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Post('return/:bookId')
-    @Roles('admin')
-    async returnBook(@Param('bookId') bookId: string) {
-        return this.booksService.returnBook(+bookId);
     }
 }
