@@ -136,7 +136,6 @@ export class BooksService {
         return res.affectedRows > 0;
     }
 
-    // --- REASON REMOVED HERE ---
     async rejectRequest(bookId: number) {
         const [bookRows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT borrower_id FROM books WHERE book_id = ? AND status = 'requested'`,
@@ -156,9 +155,12 @@ export class BooksService {
     }
 
     async findById(bookId: number) {
+        // UPDATED: Joins with users table to get the borrower's username
         const [rows] = await this.pool().execute<RowDataPacket[]>(
-            `SELECT book_id, title, image_link, borrower_id, status, created_at, updated_at
-             FROM books WHERE book_id = ?`,
+            `SELECT b.*, u.username AS borrower_username 
+             FROM books b
+             LEFT JOIN users u ON b.borrower_id = u.id
+             WHERE b.book_id = ?`,
             [bookId]
         );
         if (rows.length === 0) throw new NotFoundException('Book not found');
@@ -166,9 +168,11 @@ export class BooksService {
     }
     
     async getAllBooks() {
+        // UPDATED: Joins with users table to get the borrower's username
         const [rows] = await this.pool().execute<RowDataPacket[]>(
-            `SELECT book_id, title, image_link, borrower_id, status, created_at, updated_at 
-             FROM books`
+            `SELECT b.*, u.username AS borrower_username 
+             FROM books b
+             LEFT JOIN users u ON b.borrower_id = u.id`
         );
         return rows;
     }
