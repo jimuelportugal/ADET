@@ -4,7 +4,7 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 @Injectable()
 export class BooksService {
-    constructor(private db: DatabaseService) {}
+    constructor(private db: DatabaseService) { }
 
     private pool = () => this.db.getPool();
 
@@ -21,10 +21,10 @@ export class BooksService {
         if (book.status !== 'available') {
             throw new BadRequestException('Book is not available for request.');
         }
-        
+
         const [existingRequest] = await this.pool().execute<RowDataPacket[]>(
-             `SELECT book_id FROM books WHERE borrower_id = ? AND book_id = ? AND status = 'requested'`,
-             [userId, bookId]
+            `SELECT book_id FROM books WHERE borrower_id = ? AND book_id = ? AND status = 'requested'`,
+            [userId, bookId]
         );
         if (existingRequest.length > 0) {
             throw new BadRequestException('You already have an active request for this book.');
@@ -37,14 +37,14 @@ export class BooksService {
 
         return { success: result.affectedRows > 0, bookId, userId };
     }
-    
+
     async cancelRequest(bookId: number, userId: number) {
         const [bookRows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT book_id, status, borrower_id FROM books WHERE book_id = ?`,
             [bookId]
         );
         const book = bookRows[0];
-        
+
         if (!book || book.status !== 'requested') {
             throw new BadRequestException('Book is not currently requested or request status is invalid.');
         }
@@ -59,7 +59,7 @@ export class BooksService {
 
         return { success: result.affectedRows > 0, bookId, userId };
     }
-    
+
     async getBorrowedBooks(userId: number) {
         const [rows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT book_id, title, image_link, status, created_at, updated_at
@@ -69,7 +69,7 @@ export class BooksService {
         );
         return rows;
     }
-    
+
     async createBook(bookData: { title: string; image_link: string }) {
         const [result] = await this.pool().execute<ResultSetHeader>(
             `INSERT INTO books (title, image_link) VALUES (?, ?)`,
@@ -108,7 +108,7 @@ export class BooksService {
 
         return await this.findById(bookId);
     }
-    
+
     async deleteBook(bookId: number) {
         const [res] = await this.pool().execute<ResultSetHeader>('DELETE FROM books WHERE book_id = ?', [bookId]);
         return res.affectedRows > 0;
@@ -119,7 +119,7 @@ export class BooksService {
             `SELECT borrower_id FROM books WHERE book_id = ? AND status = 'requested'`,
             [bookId]
         );
-        
+
         if (bookRows.length === 0) {
             throw new BadRequestException('No active request found for this book.');
         }
@@ -136,7 +136,7 @@ export class BooksService {
             [borrowerId]
         );
         const username = userRows[0]?.username || `User ID ${borrowerId}`;
-        
+
         console.log(`[NOTIFICATION SENT] To: ${username} (ID: ${borrowerId}). Book ID ${bookId} request rejected. Reason: ${reason}`);
 
         return { success: true, message: `Request rejected and notification sent to ${username}.` };
@@ -151,12 +151,34 @@ export class BooksService {
         if (rows.length === 0) throw new NotFoundException('Book not found');
         return rows[0];
     }
-    
+
     async getAllBooks() {
         const [rows] = await this.pool().execute<RowDataPacket[]>(
             `SELECT book_id, title, image_link, borrower_id, status, created_at, updated_at 
              FROM books`
         );
         return rows;
+    }
+
+    async returnBook(bookId: number) {
+        const [bookRows] = await this.pool().execute<RowDataPacket[]>(
+            `SELECT status FROM books WHERE book_id = ?`,
+            [bookId]
+        );
+        const book = bookRows[0];
+
+        if (!book) {
+            throw new NotFoundException('Book not found');
+        }
+        if (book.status !== 'borrowed') {
+            throw new BadRequestException('Book is not currently borrowed.');
+        }
+
+        const [result] = await this.pool().execute<ResultSetHeader>(
+            `UPDATE books SET status = 'available', borrower_id = NULL WHERE book_id = ?`,
+            [bookId]
+        );
+
+        return { success: result.affectedRows > 0, message: 'Book returned successfully' };
     }
 }

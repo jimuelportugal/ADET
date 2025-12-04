@@ -87,4 +87,11 @@ export class BooksController {
     async getAllBooks() {
         return this.booksService.getAllBooks();
     }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Post('return/:bookId')
+    @Roles('admin')
+    async returnBook(@Param('bookId') bookId: string) {
+        return this.booksService.returnBook(+bookId);
+    }
 }
