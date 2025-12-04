@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS books (
     book_id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL UNIQUE,
     image_link VARCHAR(512),
-    borrower_id INT NULL,
-    status ENUM('available', 'borrowed') NOT NULL DEFAULT 'available',
+    borrower_id INT NULL, 
+    status ENUM('available', 'requested', 'borrowed') NOT NULL DEFAULT 'available',
     FOREIGN KEY (borrower_id) REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
